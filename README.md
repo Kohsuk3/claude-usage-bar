@@ -23,8 +23,12 @@ Claude (Claude Code / Desktop) のセッション利用量を macOS のメニュ
 ─────────────
 更新: 30秒前
 今すぐ更新
+ログイン時に起動   ✓
 終了
 ```
+
+「ログイン時に起動」をクリックすると、アプリから launchd の自動起動を ON/OFF できる
+(チェックマークが現在の状態)。トグルしても起動中のアプリはそのまま動き続ける。
 
 ## 仕組み
 
@@ -56,8 +60,11 @@ uv run python main.py
 
 ## ログイン時に自動起動 (launchd)
 
-`~/Library/LaunchAgents/com.kohsuk3.claude-usage-bar.plist` を作成して読み込む。
-`ProgramArguments` のパスは自分の環境に合わせて書き換えること。
+一番手軽なのはメニューの「ログイン時に起動」を ON にするだけ。
+クリックすると `~/Library/LaunchAgents/com.kohsuk3.claude-usage-bar.plist` が
+自動生成・登録される(パスは実行中の Python / スクリプトから自動で埋まる)。
+
+手動で管理したい場合は以下の plist を置く。`ProgramArguments` のパスは環境に合わせて書き換えること。
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -76,7 +83,7 @@ uv run python main.py
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
-    <true/>
+    <false/>
     <key>StandardOutPath</key>
     <string>/tmp/claude-usage-bar.log</string>
     <key>StandardErrorPath</key>
@@ -89,11 +96,11 @@ uv run python main.py
 # 起動 (ログイン時に自動起動 + クラッシュ時に自動復活)
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.kohsuk3.claude-usage-bar.plist
 
-# 停止
+# 停止(そのセッション限り)
 launchctl bootout gui/$(id -u)/com.kohsuk3.claude-usage-bar
 ```
 
-`KeepAlive` が有効なので、完全に止めるときは `pkill` ではなく `launchctl bootout` を使うこと。
+自動起動を恒久的に止めるならメニューの「ログイン時に起動」を OFF にするか、plist を削除する。
 
 ## 設定
 

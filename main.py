@@ -8,9 +8,13 @@
 ("Claude Code-credentials")。Claude Code を使っていれば自動でリフレッシュされる。
 """
 import json
+import os
+import plistlib
 import subprocess
+import sys
 import time
 from datetime import datetime, timedelta
+from pathlib import Path
 import urllib.request
 import urllib.error
 
@@ -21,9 +25,46 @@ from Foundation import NSMakePoint, NSMakeSize
 FETCH_SECONDS = 120       # API を叩く間隔(秒)
 UI_TICK_SECONDS = 30      # カウントダウン再描画の間隔(秒)
 KEYCHAIN_SERVICE = "Claude Code-credentials"
+LAUNCH_LABEL = "com.kohsuk3.claude-usage-bar"
+PLIST_PATH = Path.home() / "Library" / "LaunchAgents" / f"{LAUNCH_LABEL}.plist"
 API_URL = "https://api.anthropic.com/v1/messages"
 PING_MODEL = "claude-haiku-4-5-20251001"
 SYSTEM_PROMPT = "You are Claude Code, Anthropic's official CLI for Claude."
+
+
+def _autostart_enabled():
+    return PLIST_PATH.exists()
+
+
+def _set_autostart(enabled):
+    """ログイン時自動起動を ON/OFF する。現在動いてるプロセスは止めない。"""
+    uid = os.getuid()
+    if enabled:
+        plist = {
+            "Label": LAUNCH_LABEL,
+            "ProgramArguments": [sys.executable, str(Path(__file__).resolve())],
+            "WorkingDirectory": str(Path(__file__).resolve().parent),
+            "RunAtLoad": True,
+            "KeepAlive": False,
+            "StandardOutPath": "/tmp/claude-usage-bar.log",
+            "StandardErrorPath": "/tmp/claude-usage-bar.log",
+        }
+        PLIST_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with open(PLIST_PATH, "wb") as f:
+            plistlib.dump(plist, f)
+        subprocess.run(
+            ["launchctl", "enable", f"gui/{uid}/{LAUNCH_LABEL}"],
+            capture_output=True,
+        )
+    else:
+        subprocess.run(
+            ["launchctl", "disable", f"gui/{uid}/{LAUNCH_LABEL}"],
+            capture_output=True,
+        )
+        try:
+            PLIST_PATH.unlink()
+        except FileNotFoundError:
+            pass
 
 
 def _read_token():
@@ -173,9 +214,15 @@ class ClaudeUsageBar(rumps.App):
             self.updated_item,
             rumps.MenuItem("今すぐ更新", callback=lambda _: self.fetch()),
             None,
+            rumps.MenuItem("ログイン時に起動", callback=self.toggle_autostart),
             rumps.MenuItem("終了", callback=rumps.quit_application),
         ]
+        self.menu["ログイン時に起動"].state = _autostart_enabled()
         self.fetch()
+
+    def toggle_autostart(self, sender):
+        sender.state = not sender.state
+        _set_autostart(bool(sender.state))
 
     @rumps.timer(FETCH_SECONDS)
     def _fetch_tick(self, _):

@@ -273,17 +273,11 @@ class ClaudeUsageBar(rumps.App):
         )
 
         if self.fetched_at:
-            ago = int(time.time() - self.fetched_at)
-            if ago < 60:
-                ago_txt = f"{ago}秒前"
-            elif ago < 3600:
-                ago_txt = f"{ago // 60}分前"
-            else:
-                ago_txt = f"{ago // 3600}時間前"
+            clock = datetime.fromtimestamp(self.fetched_at).strftime("%H:%M:%S")
             note = f"（取得失敗: {self.error}）" if self.error else ""
-            self.updated_item.title = f"更新: {ago_txt}{note}"
+            self.updated_item.title = f"最終更新: {clock}{note}"
         else:
-            self.updated_item.title = "更新: -"
+            self.updated_item.title = "最終更新: -"
 
 
 if __name__ == "__main__":

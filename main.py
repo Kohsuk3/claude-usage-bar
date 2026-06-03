@@ -40,10 +40,17 @@ def _set_autostart(enabled):
     """ログイン時自動起動を ON/OFF する。現在動いてるプロセスは止めない。"""
     uid = os.getuid()
     if enabled:
+        if getattr(sys, "frozen", False):
+            # PyInstaller の .app: 実行バイナリ自体を起動
+            program_args = [sys.executable]
+            workdir = str(Path(sys.executable).resolve().parent)
+        else:
+            program_args = [sys.executable, str(Path(__file__).resolve())]
+            workdir = str(Path(__file__).resolve().parent)
         plist = {
             "Label": LAUNCH_LABEL,
-            "ProgramArguments": [sys.executable, str(Path(__file__).resolve())],
-            "WorkingDirectory": str(Path(__file__).resolve().parent),
+            "ProgramArguments": program_args,
+            "WorkingDirectory": workdir,
             "RunAtLoad": True,
             "KeepAlive": False,
             "StandardOutPath": "/tmp/claude-usage-bar.log",

@@ -102,6 +102,31 @@ launchctl bootout gui/$(id -u)/com.kohsuk3.claude-usage-bar
 
 自動起動を恒久的に止めるならメニューの「ログイン時に起動」を OFF にするか、plist を削除する。
 
+## .app としてビルド / 配布
+
+PyInstaller で自己完結の `.app` を生成できる。uv の Python(static build)は
+py2app と相性が悪いため、ビルドは Python 3.12 の別 venv で行う。
+
+```bash
+uv venv --python 3.12 .venv-build
+uv pip install --python .venv-build/bin/python rumps pyinstaller
+.venv-build/bin/pyinstaller --noconfirm "Claude Usage Bar.spec"
+# → dist/Claude Usage Bar.app
+```
+
+`Claude Usage Bar.spec` に `LSUIElement` 等を組み込んであるので、メニューバー常駐(Dock非表示)のアプリになる。`dist/Claude Usage Bar.app` を `/Applications` に移して使う。
+
+### 配布時の注意
+
+- **Claude Code ログイン済みの Mac でしか動かない**（Keychain の `Claude Code-credentials` を読むため）。
+- **未署名なので他人の Mac では Gatekeeper にブロックされる**。初回は右クリック → 「開く」で起動するか、隔離属性を外す：
+  ```bash
+  xattr -dr com.apple.quarantine "Claude Usage Bar.app"
+  ```
+  正式な配布には Apple Developer 登録($99/年)による署名 + 公証が必要。
+
+ビルド済みの zip は [Releases](https://github.com/Kohsuk3/claude-usage-bar/releases) からも取得できる。
+
 ## 設定
 
 `main.py` 冒頭の定数で調整できる。

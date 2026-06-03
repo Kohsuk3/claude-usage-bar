@@ -5,8 +5,8 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
-    hiddenimports=['rumps'],
+    datas=[('panel.html', '.')],
+    hiddenimports=['WebKit', 'Quartz'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -50,8 +50,8 @@ app = BUNDLE(
     info_plist={
         'LSUIElement': True,  # メニューバー常駐: Dockアイコンを出さない
         'LSMinimumSystemVersion': '11.0',
-        'CFBundleShortVersionString': '1.0.0',
-        'CFBundleVersion': '1.0.0',
+        'CFBundleShortVersionString': '2.0.0',
+        'CFBundleVersion': '2.0.0',
         'NSHumanReadableCopyright': 'MIT License',
     },
 )

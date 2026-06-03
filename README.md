@@ -2,39 +2,29 @@
 
 Claude (Claude Code / Desktop) のセッション利用量を macOS のメニューバーに常時表示する小さな常駐アプリ。
 
-- **リングゲージ** … 現在のセッション(5時間)使用率を円グラフで表示。緑 → 橙(70%) → 赤(90%) と色が変わる
-- **テキスト** … `セッション% · 週間%` を併記
-- **クリックで詳細** … セッション / 週間それぞれの使用率と、次回リセットの日時を表示
+- **ツイン同心円リング** … 外周=セッション(5時間)使用率、内周=週間(7日)使用率。外周は橙 → 琥珀(70%) → 赤(90%) と色が変わる
+- **セッション%テキスト** … リングの隣に現在のセッション使用率を併記
+- **クリックでリッチなパネル** … 大きなリング、今週メーター、直近7日の出力トークン推移グラフ(ホバーで詳細)、モデル別(Opus/Sonnet/Haiku)の内訳、クイックリンクをドロップダウン表示。ライト / ダーク両対応
 
-メニューバー表示イメージ:
+パネルの内容:
 
-```
-◔ 56% · 7%
-```
+- 5時間セッションの使用率リング + 次回リセット日時
+- 今週の使用率メーター + リセット日時
+- 直近7日の出力トークン推移(バーにホバーで「曜日 日付 · トークン数」を表示)
+- モデル別の出力トークン内訳
+- クイックリンク: Claudeを開く / 今すぐ更新 / ログイン時に起動(トグル) / 終了
 
-クリックすると:
-
-```
-セッション(5時間): 56%
-  リセット 今日 15:34
-─────────────
-週間(7日): 7%
-  リセット 6/8(月) 14:30
-─────────────
-更新: 30秒前
-今すぐ更新
-ログイン時に起動   ✓
-終了
-```
-
-「ログイン時に起動」をクリックすると、アプリから launchd の自動起動を ON/OFF できる
-(チェックマークが現在の状態)。トグルしても起動中のアプリはそのまま動き続ける。
+パネル外をクリックすると自動で閉じる。「ログイン時に起動」のトグルでアプリから launchd の自動起動を ON/OFF できる(トグルしても起動中のアプリはそのまま動き続ける)。
 
 ## 仕組み
 
-Anthropic API の `messages` エンドポイントに最小リクエスト(`max_tokens: 1` の quota ping)を投げ、
-レスポンスヘッダ `anthropic-ratelimit-unified-{5h,7d}-{utilization,reset}` を読む。
+セッション% / 週間% / リセット日時は、Anthropic API の `messages` エンドポイントに最小リクエスト
+(`max_tokens: 1` の quota ping)を投げ、レスポンスヘッダ
+`anthropic-ratelimit-unified-{5h,7d}-{utilization,reset}` を読む。
 Claude Desktop の「使用量」画面と同じ仕組みなので値が一致する。
+7日推移とモデル別内訳は `~/.claude/projects/**/*.jsonl` の assistant 行(出力トークン)を集計している。
+
+UI は pyobjc 直書き(NSStatusItem でグリフ描画 + ボーダーレス NSWindow に WKWebView でパネル描画)。
 
 - 認証は Claude Code が Keychain に保存している OAuth アクセストークン (`Claude Code-credentials`) を利用。
   Claude Code を使っていれば自動でリフレッシュされるため、トークン管理は不要。
@@ -105,14 +95,17 @@ launchctl bootout gui/$(id -u)/com.kohsuk3.claude-usage-bar
 ## .app としてビルド / 配布
 
 PyInstaller で自己完結の `.app` を生成できる。uv の Python(static build)は
-py2app と相性が悪いため、ビルドは Python 3.12 の別 venv で行う。
+PyInstaller と相性が悪いため、ビルドは Python 3.12 の別 venv で行う。
 
 ```bash
 uv venv --python 3.12 .venv-build
-uv pip install --python .venv-build/bin/python rumps pyinstaller
+uv pip install --python .venv-build/bin/python \
+  pyobjc-framework-webkit pyobjc-framework-quartz pyinstaller
 .venv-build/bin/pyinstaller --noconfirm "Claude Usage Bar.spec"
 # → dist/Claude Usage Bar.app
 ```
+
+`Claude Usage Bar.spec` の `datas` に `panel.html` を含めてあるので、パネルの HTML もバンドルされる。
 
 `Claude Usage Bar.spec` に `LSUIElement` 等を組み込んであるので、メニューバー常駐(Dock非表示)のアプリになる。`dist/Claude Usage Bar.app` を `/Applications` に移して使う。
 
@@ -134,7 +127,6 @@ uv pip install --python .venv-build/bin/python rumps pyinstaller
 | 定数 | 既定値 | 説明 |
 | --- | --- | --- |
 | `FETCH_SECONDS` | `120` | API を叩く間隔(秒) |
-| `UI_TICK_SECONDS` | `30` | 表示を再描画する間隔(秒) |
 
 ## ライセンス
 

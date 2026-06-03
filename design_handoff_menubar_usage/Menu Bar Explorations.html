@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude 使用量 — メニューバー デザイン探索</title>
+<style>
+  :root{
+    --orange:#D97757;        /* Claude clay-orange */
+    --orange-deep:#C2613F;
+    --amber:#E0922F;          /* warning */
+    --red:#D24B38;            /* critical */
+    --clay-soft:#E6A88B;
+
+    --board-bg:#1b1916;
+    --ink:#1f1e1d;
+    --panel-dark:#262624;
+    --panel-dark-2:#1c1b19;
+    --hair-dark:rgba(255,255,255,.09);
+    --txt-dark:#ece8df;
+    --txt-dark-dim:rgba(236,232,223,.55);
+
+    --cream:#faf9f5;
+    --cream-2:#f0eee6;
+    --txt-light:#33312d;
+    --txt-light-dim:#8d8579;
+    --hair-light:rgba(0,0,0,.08);
+
+    --sf:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--board-bg);}
+  body{
+    font-family:var(--sf);
+    color:var(--txt-dark);
+    background:
+      radial-gradient(900px 600px at 18% -10%, rgba(217,119,87,.14), transparent 60%),
+      radial-gradient(800px 700px at 100% 0%, rgba(217,119,87,.06), transparent 55%),
+      var(--board-bg);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    padding:48px 40px 96px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  /* ---------- header ---------- */
+  header.top{margin-bottom:14px;}
+  .eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--orange);font-weight:600;}
+  h1.title{font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-.02em;margin:8px 0 10px;color:#fff;}
+  .lede{font-size:15px;line-height:1.6;color:var(--txt-dark-dim);max-width:680px;}
+  .lede b{color:var(--txt-dark);font-weight:500;}
+
+  .controls{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:26px 0 34px;}
+  .seg{display:inline-flex;background:rgba(255,255,255,.05);border:1px solid var(--hair-dark);border-radius:11px;padding:3px;gap:2px;}
+  .seg button{
+    font-family:inherit;font-size:13px;font-weight:500;color:var(--txt-dark-dim);
+    background:transparent;border:0;border-radius:8px;padding:7px 14px;cursor:pointer;
+    transition:.18s ease;white-space:nowrap;
+  }
+  .seg button:hover{color:var(--txt-dark);}
+  .seg button[aria-pressed="true"]{background:rgba(255,255,255,.1);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);}
+  .seg.state button[aria-pressed="true"][data-state="ok"]{box-shadow:inset 0 0 0 1px rgba(217,119,87,.5);}
+  .seg.state button[aria-pressed="true"][data-state="warn"]{box-shadow:inset 0 0 0 1px rgba(224,146,47,.55);}
+  .seg.state button[aria-pressed="true"][data-state="crit"]{box-shadow:inset 0 0 0 1px rgba(210,75,56,.6);}
+  .ctl-label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--txt-dark-dim);margin-right:2px;}
+
+  /* ---------- section ---------- */
+  section{margin-top:54px;}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px;}
+  .sec-num{font-size:12px;font-weight:600;color:var(--orange);font-variant-numeric:tabular-nums;letter-spacing:.1em;}
+  .sec-title{font-size:19px;font-weight:600;letter-spacing:-.01em;color:#fff;}
+  .sec-desc{font-size:13.5px;color:var(--txt-dark-dim);}
+
+  /* ---------- macOS menu bar mock ---------- */
+  .desktop{border-radius:14px;overflow:hidden;border:1px solid var(--hair-dark);box-shadow:0 24px 60px -20px rgba(0,0,0,.6);}
+  .wall{
+    position:relative;
+    background:linear-gradient(155deg,#3a2f57 0%,#7b4a63 38%,#c06a52 70%,#e7a15c 100%);
+  }
+  .wall.light{background:linear-gradient(160deg,#d4dde9 0%,#e9e2dd 48%,#f4ddc2 100%);}
+  .menubar{
+    display:flex;align-items:center;height:30px;padding:0 12px 0 16px;
+    background:rgba(28,26,24,.46);
+    -webkit-backdrop-filter:blur(26px) saturate(1.5);backdrop-filter:blur(26px) saturate(1.5);
+    --track:rgba(255,255,255,.22);--bar-fg:rgba(255,255,255,.95);--bar-fg-dim:rgba(255,255,255,.6);
+    color:var(--bar-fg);font-size:13px;
+  }
+  .menubar.light{
+    background:rgba(250,249,245,.5);
+    --track:rgba(0,0,0,.16);--bar-fg:rgba(20,18,16,.92);--bar-fg-dim:rgba(20,18,16,.5);
+    color:var(--bar-fg);
+  }
+  .mb-apple{font-size:15px;margin-right:16px;opacity:.95;}
+  .mb-menus{display:flex;gap:17px;font-size:13px;}
+  .mb-menus b{font-weight:600;}
+  .mb-menus span{opacity:.92;font-weight:400;}
+  .mb-spacer{flex:1;}
+  .mb-right{display:flex;align-items:center;gap:15px;}
+  .mb-right .sysicon{height:15px;width:auto;opacity:.95;display:block;}
+  .mb-clock{font-variant-numeric:tabular-nums;font-weight:400;letter-spacing:.01em;opacity:.95;}
+  .mb-slot{display:flex;align-items:center;}
+  .desk-body{height:120px;position:relative;}
+  .desk-body.tall{height:150px;}
+
+  /* ---------- glyph ---------- */
+  .glyph{display:inline-flex;align-items:center;gap:.36em;height:var(--h,17px);line-height:1;color:var(--c,var(--orange));}
+  .glyph .ic{height:100%;width:auto;display:block;overflow:visible;}
+  .glyph .txt{display:inline-flex;align-items:baseline;gap:.22em;font-size:calc(var(--h,17px)*.78);font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+  .glyph .txt .sess{color:var(--c,var(--orange));font-weight:600;}
+  .glyph .txt .dot{color:var(--bar-fg-dim);font-weight:400;transform:translateY(-.04em);}
+  .glyph .txt .week{color:var(--bar-fg-dim);font-weight:500;}
+
+  .track{fill:none;stroke:var(--track,rgba(255,255,255,.2));}
+  .arc{fill:none;stroke:var(--c,var(--orange));stroke-linecap:round;transition:stroke-dashoffset .9s cubic-bezier(.22,1,.36,1),stroke .5s ease;}
+  .fillbar{transition:transform .9s cubic-bezier(.22,1,.36,1),fill .5s ease;}
+  .sparkline-stroke{transition:stroke .5s ease;}
+
+  /* twinkle on sparks */
+  @keyframes twinkle{0%,100%{opacity:.55;transform:scale(.9)}50%{opacity:1;transform:scale(1.12)}}
+  .glyph .spk-tw{transform-box:fill-box;transform-origin:center;animation:twinkle 3.4s ease-in-out infinite;}
+  /* critical pulse */
+  @keyframes critpulse{0%,100%{opacity:1}50%{opacity:.42}}
+  .glyph.is-crit{animation:critpulse 1.15s ease-in-out infinite;}
+  @media (prefers-reduced-motion:reduce){
+    .arc,.fillbar{transition:none}.glyph .spk-tw{animation:none}.glyph.is-crit{animation:none}
+  }
+
+  /* ---------- glyph cards grid ---------- */
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
+  .card{
+    background:linear-gradient(180deg,#262421,#211f1c);
+    border:1px solid var(--hair-dark);border-radius:16px;padding:0;overflow:hidden;
+    transition:.2s ease;cursor:pointer;
+  }
+  .card:hover{border-color:rgba(217,119,87,.45);transform:translateY(-2px);}
+  .card.active{border-color:var(--orange);box-shadow:0 0 0 1px var(--orange),0 18px 40px -22px rgba(217,119,87,.6);}
+  .card-stage{
+    height:148px;display:flex;align-items:center;justify-content:center;gap:34px;
+    background:radial-gradient(120% 120% at 50% 0%,rgba(217,119,87,.08),transparent 55%),#191815;
+    position:relative;
+  }
+  /* mini menubar chip */
+  .barchip{
+    --track:rgba(255,255,255,.22);--bar-fg:rgba(255,255,255,.95);--bar-fg-dim:rgba(255,255,255,.55);
+    display:inline-flex;align-items:center;padding:7px 13px;border-radius:9px;
+    background:rgba(20,18,16,.55);border:1px solid rgba(255,255,255,.07);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  }
+  .inspector{display:flex;flex-direction:column;align-items:center;gap:7px;}
+  .insp-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-dark-dim);}
+  .card-foot{padding:16px 18px 18px;border-top:1px solid var(--hair-dark);}
+  .card-head{display:flex;align-items:center;gap:9px;margin-bottom:6px;}
+  .card-tag{font-size:11px;font-weight:600;color:var(--orange);font-variant-numeric:tabular-nums;}
+  .card-name{font-size:15px;font-weight:600;color:#fff;}
+  .card-rat{font-size:12.5px;line-height:1.55;color:var(--txt-dark-dim);}
+  .pick{margin-left:auto;font-size:11px;color:var(--txt-dark-dim);display:flex;align-items:center;gap:5px;}
+  .card.active .pick{color:var(--orange);}
+  .pick .dotpick{width:8px;height:8px;border-radius:50%;border:1.5px solid currentColor;}
+  .card.active .pick .dotpick{background:var(--orange);border-color:var(--orange);}
+
+  /* ---------- panels ---------- */
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start;}
+  .panel-col .pc-head{display:flex;align-items:center;gap:9px;margin-bottom:14px;}
+  .pc-name{font-size:14px;font-weight:600;color:#fff;}
+  .pc-sub{font-size:12px;color:var(--txt-dark-dim);}
+  .pop-anchor{display:flex;justify-content:center;}
+  .pop{
+    width:300px;border-radius:16px;overflow:hidden;position:relative;
+    box-shadow:0 30px 70px -24px rgba(0,0,0,.7),0 2px 6px rgba(0,0,0,.3);
+  }
+  .pop .caret{position:absolute;top:-7px;left:50%;width:14px;height:14px;transform:translateX(-50%) rotate(45deg);}
+
+  /* dark branded panel */
+  .pop.dark{background:var(--panel-dark);border:1px solid rgba(255,255,255,.08);color:var(--txt-dark);}
+  .pop.dark .caret{background:var(--panel-dark);border-left:1px solid rgba(255,255,255,.08);border-top:1px solid rgba(255,255,255,.08);}
+  .pop.light{background:var(--cream);border:1px solid rgba(0,0,0,.07);color:var(--txt-light);}
+  .pop.light .caret{background:var(--cream);border-left:1px solid rgba(0,0,0,.07);border-top:1px solid rgba(0,0,0,.07);}
+
+  .pop-hd{display:flex;align-items:center;gap:9px;padding:15px 16px 13px;}
+  .pop.dark .pop-hd{border-bottom:1px solid var(--hair-dark);}
+  .pop.light .pop-hd{border-bottom:1px solid var(--hair-light);}
+  .pop-hd .appname{font-size:13.5px;font-weight:600;letter-spacing:-.01em;}
+  .pop.dark .pop-hd .appname{color:#fff;}
+  .pop-hd .gear{margin-left:auto;opacity:.5;cursor:pointer;}
+  .pop-hd .gear:hover{opacity:.9;}
+
+  .pop-body{padding:16px;}
+  .hero-row{display:flex;align-items:center;gap:16px;margin-bottom:16px;}
+  .bigring{position:relative;width:74px;height:74px;flex:none;}
+  .bigring svg{width:100%;height:100%;transform:rotate(-90deg);}
+  .bigring .pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .bigring .pct b{font-size:21px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1;}
+  .bigring .pct small{font-size:9px;margin-top:2px;letter-spacing:.06em;color:inherit;opacity:.5;}
+  .hero-meta .hm-label{font-size:12px;font-weight:600;letter-spacing:.02em;}
+  .pop.dark .hero-meta .hm-label{color:#fff;}
+  .hero-meta .hm-reset{font-size:12.5px;margin-top:3px;display:flex;align-items:center;gap:6px;}
+  .pop.dark .hero-meta .hm-reset{color:var(--txt-dark-dim);}
+  .pop.light .hero-meta .hm-reset{color:var(--txt-light-dim);}
+  .hm-reset svg{opacity:.7;}
+
+  .blk{margin-top:14px;}
+  .blk-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px;}
+  .blk-top .bl{font-size:11.5px;font-weight:600;letter-spacing:.02em;}
+  .pop.dark .blk-top .bl{color:rgba(236,232,223,.8);}
+  .pop.light .blk-top .bl{color:var(--txt-light);}
+  .blk-top .br{font-size:11.5px;font-variant-numeric:tabular-nums;}
+  .pop.dark .blk-top .br{color:var(--txt-dark-dim);}
+  .pop.light .blk-top .br{color:var(--txt-light-dim);}
+  .meter{height:7px;border-radius:4px;overflow:hidden;}
+  .pop.dark .meter{background:rgba(255,255,255,.1);}
+  .pop.light .meter{background:rgba(0,0,0,.08);}
+  .meter i{display:block;height:100%;border-radius:4px;transition:width .9s cubic-bezier(.22,1,.36,1),background .5s;}
+
+  /* trend */
+  .trend{display:flex;align-items:flex-end;gap:5px;height:46px;margin-top:9px;}
+  .trend .bar{flex:1;border-radius:3px 3px 2px 2px;min-height:3px;transition:height .7s cubic-bezier(.22,1,.36,1);}
+  .pop.dark .trend .bar{background:rgba(217,119,87,.32);}
+  .pop.light .trend .bar{background:rgba(217,119,87,.28);}
+  .trend .bar.now{background:var(--orange)!important;}
+  .trend-x{display:flex;gap:5px;margin-top:6px;}
+  .trend-x span{flex:1;text-align:center;font-size:9px;letter-spacing:.02em;}
+  .pop.dark .trend-x span{color:var(--txt-dark-dim);}
+  .pop.light .trend-x span{color:var(--txt-light-dim);}
+  .trend-x span.now{color:var(--orange);font-weight:600;}
+
+  /* model rows */
+  .model{display:flex;align-items:center;gap:10px;margin-top:9px;}
+  .model .mname{font-size:12px;font-weight:500;width:62px;flex:none;}
+  .pop.dark .model .mname{color:var(--txt-dark);}
+  .model .mtrack{flex:1;height:6px;border-radius:3px;overflow:hidden;}
+  .pop.dark .model .mtrack{background:rgba(255,255,255,.08);}
+  .pop.light .model .mtrack{background:rgba(0,0,0,.07);}
+  .model .mtrack i{display:block;height:100%;border-radius:3px;}
+  .model .mval{font-size:11px;font-variant-numeric:tabular-nums;width:50px;text-align:right;flex:none;}
+  .pop.dark .model .mval{color:var(--txt-dark-dim);}
+  .pop.light .model .mval{color:var(--txt-light-dim);}
+
+  /* quick links */
+  .qlinks{margin-top:6px;}
+  .pop.dark .qlinks{border-top:1px solid var(--hair-dark);}
+  .pop.light .qlinks{border-top:1px solid var(--hair-light);}
+  .qlink{display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:13px;cursor:pointer;}
+  .qlink:hover{background:rgba(217,119,87,.14);}
+  .qlink .qi{width:15px;display:flex;justify-content:center;opacity:.65;}
+  .qlink .qk{margin-left:auto;font-size:11px;opacity:.4;font-variant-numeric:tabular-nums;}
+  .pop.dark .qlink{color:var(--txt-dark);}
+  .pop.light .qlink{color:var(--txt-light);}
+  .sub-divider{height:1px;margin:0 16px;}
+  .pop.dark .sub-divider{background:var(--hair-dark);}
+  .pop.light .sub-divider{background:var(--hair-light);}
+
+  .footnote{margin-top:64px;padding-top:22px;border-top:1px solid var(--hair-dark);font-size:13px;line-height:1.7;color:var(--txt-dark-dim);}
+  .footnote b{color:var(--txt-dark);font-weight:500;}
+  .footnote ul{margin:8px 0 0;padding-left:18px;}
+  .footnote li{margin:3px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Claude Usage · Menu Bar</div>
+    <h1 class="title">メニューバー使用量グリフの探索</h1>
+    <p class="lede">macOSメニューバーは高さ約22ptのモノクロ寄りの世界。その中で<b>5時間セッション</b>と<b>週の使用量</b>を一目で伝えるための、ブランド寄り（Claudeオレンジ／スパーク）の4方向と、開いたときの2つのパネルを並べました。下のボタンで状態を切り替えると、リングが満ちて色が変わります。</p>
+  </header>
+
+  <div class="controls">
+    <span class="ctl-label">状態</span>
+    <div class="seg state" id="stateSeg" role="group" aria-label="使用状態">
+      <button data-state="ok" aria-pressed="false">正常</button>
+      <button data-state="warn" aria-pressed="true">警告</button>
+      <button data-state="crit" aria-pressed="false">上限間近</button>
+    </div>
+    <span class="ctl-label" style="margin-left:8px">メニューバー</span>
+    <div class="seg appear" id="appearSeg" role="group" aria-label="外観">
+      <button data-appear="dark" aria-pressed="true">ダーク</button>
+      <button data-appear="light" aria-pressed="false">ライト</button>
+    </div>
+  </div>
+
+  <!-- ============ IN CONTEXT ============ -->
+  <section id="context">
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <span class="sec-title">実機コンテキスト</span>
+      <span class="sec-desc">— 選択中の方向を、実際のメニューバーの大きさで。カードをクリックで切替。</span>
+    </div>
+    <div class="desktop">
+      <div class="wall" id="wall">
+        <div class="menubar" id="heroBar">
+          <span class="mb-apple"></span>
+          <div class="mb-menus"><b>Claude</b><span>ファイル</span><span>編集</span><span>表示</span></div>
+          <div class="mb-spacer"></div>
+          <div class="mb-right">
+            <div class="mb-slot" id="heroSlot"></div>
+            <svg class="sysicon" viewBox="0 0 22 14" width="20"><rect x="1" y="2.5" width="3" height="9" rx="1" fill="currentColor"/><rect x="6" y="0.5" width="3" height="13" rx="1" fill="currentColor"/><rect x="11" y="4.5" width="3" height="7" rx="1" fill="currentColor" opacity=".45"/><rect x="16" y="6.5" width="3" height="5" rx="1" fill="currentColor" opacity=".45"/></svg>
+            <svg class="sysicon" viewBox="0 0 18 14" width="17"><path d="M9 12.5l-.01.01M9 3c2.5 0 4.8.95 6.5 2.5M9 7c1.4 0 2.7.5 3.7 1.4M2.5 5.5C4.2 3.95 6.5 3 9 3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+            <svg class="sysicon" viewBox="0 0 28 14" width="26"><rect x="1" y="2.5" width="22" height="9" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".75"/><rect x="3" y="4.5" width="14" height="5" rx="1.2" fill="currentColor"/><rect x="24.4" y="5" width="1.6" height="4" rx="1" fill="currentColor" opacity=".75"/></svg>
+            <span class="mb-clock">火 6月3日 15:29</span>
+          </div>
+        </div>
+        <div class="desk-body"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GLYPHS ============ -->
+  <section id="glyphs">
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <span class="sec-title">グリフの4方向</span>
+      <span class="sec-desc">— 各カード = 実寸のメニューバー表示 ＋ 拡大インスペクタ。</span>
+    </div>
+    <div class="grid" id="glyphGrid"></div>
+  </section>
+
+  <!-- ============ PANELS ============ -->
+  <section id="panels">
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <span class="sec-title">ドロップダウン・パネル</span>
+      <span class="sec-desc">— クリックで開く中身を2つの雰囲気で。状態ボタンに連動。</span>
+    </div>
+    <div class="panels">
+      <div class="panel-col">
+        <div class="pc-head"><span class="pc-name">A — 温かみ・ブランド（ダーク）</span></div>
+        <div class="pc-sub" style="margin-bottom:14px">ダークなメニューバーに馴染む、Claudeの世界観。</div>
+        <div class="pop-anchor"><div class="pop dark" id="popDark"></div></div>
+      </div>
+      <div class="panel-col">
+        <div class="pc-head"><span class="pc-name">B — クリーン・ネイティブ（ライト）</span></div>
+        <div class="pc-sub" style="margin-bottom:14px">Appleのバッテリー／Wi-Fiメニューのような実直さ。</div>
+        <div class="pop-anchor"><div class="pop light" id="popLight"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footnote">
+    <b>設計メモ</b>
+    <ul>
+      <li><b>色 = 状態</b>：~70%未満はClaudeオレンジ、70–90%はアンバー、90%以上はレッド＋鼓動。色だけに頼らず数字も併記。</li>
+      <li><b>2つの数字</b>：大きい方＝5時間セッション（主役）、控えめな方＝週。週は常にミュート色で主役を邪魔しない。</li>
+      <li><b>動き</b>：更新時にリング／バーが満ちる、スパークは微かに瞬く、上限間近のみ鼓動。<code>prefers-reduced-motion</code>で停止。</li>
+      <li>次の一手の候補：ライト／ダーク自動追従、クリックで開くパネルの実装、推移グラフの実データ接続、好きなグリフ＋パネルの組み合わせ確定。どれを深掘りしますか？</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+/* ===== Claude usage menu-bar glyph explorations ===== */
+(function () {
+  'use strict';
+
+  // ---------- scenarios ----------
+  var SCEN = {
+    ok:   { session: 38, week: 22, reset: 'あと4時間02分', tag: '正常' },
+    warn: { session: 79, week: 61, reset: 'あと2時間14分', tag: '警告' },
+    crit: { session: 97, week: 91, reset: 'あと0時間21分', tag: '上限間近' }
+  };
+  var state = 'warn';
+
+  function colorFor(pct) {
+    if (pct >= 90) return getCss('--red');
+    if (pct >= 70) return getCss('--amber');
+    return getCss('--orange');
+  }
+  function levelFor(pct) { return pct >= 90 ? 'crit' : (pct >= 70 ? 'warn' : 'ok'); }
+  function getCss(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+  var SPARK = 'M8 .6 C8.4 5 11 7.6 15.4 8 C11 8.4 8.4 11 8 15.4 C7.6 11 5 8.4 .6 8 C5 7.6 7.6 5 8 .6 Z';
+
+  // ---------- glyph builders ----------
+  // each returns {el, update(scen)}
+  var uid = 0;
+  function build(kind, h) {
+    var host = document.createElement('span');
+    host.className = 'glyph';
+    host.style.setProperty('--h', h + 'px');
+    var id = 'g' + (uid++);
+    var api;
+
+    if (kind === 'ring') {
+      host.innerHTML =
+        '<svg class="ic" viewBox="0 0 16 16">' +
+          '<circle class="track" cx="8" cy="8" r="6" stroke-width="2.1"/>' +
+          '<circle class="arc" cx="8" cy="8" r="6" stroke-width="2.1" pathLength="100" ' +
+            'stroke-dasharray="100" transform="rotate(-90 8 8)"/>' +
+        '</svg>' +
+        '<span class="txt"><span class="sess">79%</span><span class="dot">·</span><span class="week">9%</span></span>';
+      var arc = host.querySelector('.arc');
+      api = function (s) {
+        var c = colorFor(s.session);
+        host.style.setProperty('--c', c);
+        arc.style.strokeDashoffset = (100 - s.session);
+        host.querySelector('.sess').textContent = s.session + '%';
+        host.querySelector('.week').textContent = s.week + '%';
+      };
+    }
+
+    else if (kind === 'spark') {
+      var cid = 'spk' + id;
+      host.innerHTML =
+        '<svg class="ic" viewBox="0 0 16 16">' +
+          '<defs><clipPath id="' + cid + '"><path d="' + SPARK + '"/></clipPath></defs>' +
+          '<path d="' + SPARK + '" fill="none" stroke="var(--track)" stroke-width="1.1"/>' +
+          '<g clip-path="url(#' + cid + ')">' +
+            '<rect class="fillbar" x="0" y="0" width="16" height="16" fill="var(--c)" ' +
+              'style="transform-box:fill-box;transform-origin:bottom"/>' +
+          '</g>' +
+          '<path class="spk-tw" d="' + SPARK + '" fill="none" stroke="var(--c)" stroke-width="1.1" opacity=".0"/>' +
+        '</svg>' +
+        '<span class="txt"><span class="sess">79%</span></span>';
+      var fill = host.querySelector('.fillbar');
+      api = function (s) {
+        host.style.setProperty('--c', colorFor(s.session));
+        fill.style.transform = 'scaleY(' + (s.session / 100) + ')';
+        host.querySelector('.sess').textContent = s.session + '%';
+      };
+    }
+
+    else if (kind === 'twin') {
+      host.innerHTML =
+        '<svg class="ic" viewBox="0 0 16 16">' +
+          '<circle class="track" cx="8" cy="8" r="6.4" stroke-width="1.5"/>' +
+          '<circle class="arc arc-s" cx="8" cy="8" r="6.4" stroke-width="1.5" pathLength="100" ' +
+            'stroke-dasharray="100" transform="rotate(-90 8 8)"/>' +
+          '<circle class="track" cx="8" cy="8" r="3.4" stroke-width="1.5"/>' +
+          '<circle class="arc arc-w" cx="8" cy="8" r="3.4" stroke-width="1.5" pathLength="100" ' +
+            'stroke-dasharray="100" transform="rotate(-90 8 8)"/>' +
+        '</svg>' +
+        '<span class="txt"><span class="sess">79%</span></span>';
+      var as = host.querySelector('.arc-s'), aw = host.querySelector('.arc-w');
+      api = function (s) {
+        host.style.setProperty('--c', colorFor(s.session));
+        as.style.stroke = colorFor(s.session);
+        aw.style.stroke = getCss('--clay-soft');
+        as.style.strokeDashoffset = (100 - s.session);
+        aw.style.strokeDashoffset = (100 - s.week);
+        host.querySelector('.sess').textContent = s.session + '%';
+      };
+    }
+
+    else if (kind === 'fuel') {
+      host.innerHTML =
+        '<svg class="ic" viewBox="0 0 28 16" style="aspect-ratio:28/16">' +
+          '<defs><clipPath id="cap' + id + '"><rect x="1.2" y="4" width="23" height="8" rx="4"/></clipPath></defs>' +
+          '<rect x="1.2" y="4" width="23" height="8" rx="4" fill="none" stroke="var(--track)" stroke-width="1.4"/>' +
+          '<g clip-path="url(#cap' + id + ')">' +
+            '<rect class="fillbar" x="1.2" y="4" width="23" height="8" fill="var(--c)" ' +
+              'style="transform-box:fill-box;transform-origin:left"/>' +
+          '</g>' +
+          '<path class="spk-tw" d="M25.6 4.6 C25.8 6.6 26.6 7.4 28 7.6 C26.6 7.8 25.8 8.6 25.6 10.6 ' +
+            'C25.4 8.6 24.6 7.8 23.2 7.6 C24.6 7.4 25.4 6.6 25.6 4.6 Z" fill="var(--c)"/>' +
+        '</svg>' +
+        '<span class="txt"><span class="sess">79%</span><span class="dot">·</span><span class="week">9%</span></span>';
+      var fb = host.querySelector('.fillbar');
+      api = function (s) {
+        host.style.setProperty('--c', colorFor(s.session));
+        fb.style.transform = 'scaleX(' + (s.session / 100) + ')';
+        host.querySelector('.sess').textContent = s.session + '%';
+        host.querySelector('.week').textContent = s.week + '%';
+      };
+    }
+
+    function update(s) {
+      api(s);
+      host.classList.toggle('is-crit', levelFor(s.session) === 'crit');
+    }
+    return { el: host, update: update };
+  }
+
+  // ---------- registry ----------
+  var instances = [];
+  function reg(g) { instances.push(g); return g; }
+  function renderAll(animate) {
+    var s = SCEN[state];
+    instances.forEach(function (g) { g.update(s); });
+    updatePanels(s);
+  }
+
+  // ---------- hero (in context) ----------
+  var heroSlot = document.getElementById('heroSlot');
+  var activeKind = 'twin';
+  function mountHero() {
+    heroSlot.innerHTML = '';
+    var g = build(activeKind, 17);
+    heroSlot.appendChild(g.el);
+    g.update(SCEN[state]);
+    heroSlot._g = g;
+  }
+
+  // ---------- glyph cards ----------
+  var DIRS = [
+    { kind: 'ring', tag: 'A', name: 'リファインド・リング', rat: '現状の正統進化。リングが進捗、数字はセッション％を主役に。最も読みやすく安全な一手。' },
+    { kind: 'spark', tag: 'B', name: 'スパーク・ゲージ', rat: 'Claudeのきらめきが下から満ちる。ブランドそのものが計器になる、最も「らしい」案。' },
+    { kind: 'twin', tag: 'C', name: 'ツイン・リング', rat: '外＝セッション、内＝週。文字をほぼ消し、2指標を1つの円に凝縮。静かで上品。' },
+    { kind: 'fuel', tag: 'D', name: 'フューエル・カプセル', rat: '左から満ちる燃料計＋スパークの栓。残量感が直感的で、横長スペースを活かす。' }
+  ];
+  var grid = document.getElementById('glyphGrid');
+  DIRS.forEach(function (d) {
+    var card = document.createElement('div');
+    card.className = 'card' + (d.kind === activeKind ? ' active' : '');
+    card.dataset.kind = d.kind;
+    card.innerHTML =
+      '<div class="card-stage">' +
+        '<div class="inspector"><span class="insp-label">実寸</span><span class="barchip"></span></div>' +
+        '<div class="inspector"><span class="insp-label">拡大</span><span class="insp-big"></span></div>' +
+      '</div>' +
+      '<div class="card-foot">' +
+        '<div class="card-head"><span class="card-tag">' + d.tag + '</span><span class="card-name">' + d.name + '</span>' +
+          '<span class="pick"><span class="dotpick"></span>選択</span></div>' +
+        '<div class="card-rat">' + d.rat + '</div>' +
+      '</div>';
+    // real-size glyph on a bar chip
+    var gMini = reg(build(d.kind, 17));
+    card.querySelector('.barchip').appendChild(gMini.el);
+    // big inspector glyph
+    var gBig = reg(build(d.kind, 52));
+    card.querySelector('.insp-big').appendChild(gBig.el);
+
+    card.addEventListener('click', function () {
+      activeKind = d.kind;
+      document.querySelectorAll('.card').forEach(function (c) { c.classList.toggle('active', c === card); });
+      mountHero();
+    });
+    grid.appendChild(card);
+  });
+
+  // ---------- panels ----------
+  var TREND = [44, 58, 33, 71, 49, 88, 62]; // last 7 days, % of a day's cap
+  var DAYS = ['月', '火', '水', '木', '金', '土', '日'];
+  var MODELS = [
+    { n: 'Opus', v: 52, tok: '1.2M', c: 'var(--orange-deep)' },
+    { n: 'Sonnet', v: 36, tok: '840k', c: 'var(--orange)' },
+    { n: 'Haiku', v: 12, tok: '210k', c: 'var(--clay-soft)' }
+  ];
+
+  function ringSvg(r, sw) {
+    var C = 2 * Math.PI * r, cx = 37;
+    return '<svg viewBox="0 0 74 74">' +
+      '<circle cx="' + cx + '" cy="37" r="' + r + '" fill="none" stroke="var(--rtrack)" stroke-width="' + sw + '"/>' +
+      '<circle class="bigarc" cx="' + cx + '" cy="37" r="' + r + '" fill="none" stroke-width="' + sw + '" ' +
+        'stroke-linecap="round" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + C.toFixed(1) + '" ' +
+        'style="transition:stroke-dashoffset .9s cubic-bezier(.22,1,.36,1),stroke .5s"/></svg>';
+    }
+
+  function panelHTML() {
+    var sparkMark = '<svg width="17" height="17" viewBox="0 0 16 16"><path d="' + SPARK + '" fill="var(--orange)"/></svg>';
+    var trendBars = TREND.map(function (v, i) {
+      return '<div class="bar' + (i === TREND.length - 1 ? ' now' : '') + '" data-v="' + v + '" style="height:' + (v * 0.42 + 3) + 'px"></div>';
+    }).join('');
+    var trendX = DAYS.map(function (d, i) {
+      return '<span class="' + (i === DAYS.length - 1 ? 'now' : '') + '">' + d + '</span>';
+    }).join('');
+    var models = MODELS.map(function (m) {
+      return '<div class="model"><span class="mname">' + m.n + '</span>' +
+        '<span class="mtrack"><i style="width:' + m.v + '%;background:' + m.c + '"></i></span>' +
+        '<span class="mval">' + m.tok + '</span></div>';
+    }).join('');
+    var clock = '<svg width="13" height="13" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M7 4v3.2l2 1.3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg>';
+    var gear = '<svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 5.4A2.6 2.6 0 108 10.6 2.6 2.6 0 008 5.4zm6 3.2v-1.2l-1.5-.5a4.9 4.9 0 00-.4-1l.7-1.4-.9-.9-1.4.7a4.9 4.9 0 00-1-.4L9 1.4H7.8l-.5 1.5a4.9 4.9 0 00-1 .4l-1.4-.7-.9.9.7 1.4a4.9 4.9 0 00-.4 1l-1.5.5v1.2l1.5.5c.1.36.24.7.4 1l-.7 1.4.9.9 1.4-.7c.32.17.66.3 1 .4l.5 1.5H9l.5-1.5c.34-.1.68-.23 1-.4l1.4.7.9-.9-.7-1.4c.16-.3.3-.64.4-1l1.5-.5z"/></svg>';
+
+    return '' +
+      '<div class="caret"></div>' +
+      '<div class="pop-hd">' + sparkMark + '<span class="appname">Claude 使用状況</span><span class="gear">' + gear + '</span></div>' +
+      '<div class="pop-body">' +
+        '<div class="hero-row">' +
+          '<div class="bigring">' + ringSvg(31, 6) +
+            '<div class="pct"><b class="hsess">79%</b><small>セッション</small></div></div>' +
+          '<div class="hero-meta">' +
+            '<div class="hm-label">5時間セッション</div>' +
+            '<div class="hm-reset">' + clock + '<span class="hreset">あと2時間14分でリセット</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="blk"><div class="blk-top"><span class="bl">今週</span><span class="br"><span class="hweek">9</span>% · 月曜にリセット</span></div>' +
+          '<div class="meter"><i class="wmeter" style="width:9%"></i></div></div>' +
+        '<div class="blk"><div class="blk-top"><span class="bl">直近7日の推移</span><span class="br">1日あたり</span></div>' +
+          '<div class="trend">' + trendBars + '</div><div class="trend-x">' + trendX + '</div></div>' +
+        '<div class="blk"><div class="blk-top"><span class="bl">モデル別の内訳</span><span class="br">トークン</span></div>' +
+          models + '</div>' +
+      '</div>' +
+      '<div class="qlinks">' +
+        '<div class="sub-divider"></div>' +
+        '<div class="qlink"><span class="qi">' + sparkMark + '</span>Claudeを開く<span class="qk">⌘O</span></div>' +
+        '<div class="qlink"><span class="qi"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 11l3-1 6.2-6.2a1.4 1.4 0 00-2-2L3 8z"/></svg></span>使用状況の詳細</div>' +
+        '<div class="qlink"><span class="qi">' + gear + '</span>設定…<span class="qk">⌘,</span></div>' +
+      '</div>';
+  }
+
+  var popDark = document.getElementById('popDark');
+  var popLight = document.getElementById('popLight');
+  popDark.innerHTML = panelHTML();
+  popLight.innerHTML = panelHTML();
+  // ring track colors per panel
+  popDark.style.setProperty('--rtrack', 'rgba(255,255,255,.12)');
+  popLight.style.setProperty('--rtrack', 'rgba(0,0,0,.09)');
+
+  function updatePanels(s) {
+    [popDark, popLight].forEach(function (p) {
+      var c = colorFor(s.session);
+      var arc = p.querySelector('.bigarc');
+      var C = 2 * Math.PI * 31;
+      arc.style.stroke = c;
+      arc.style.strokeDashoffset = (C * (1 - s.session / 100)).toFixed(1);
+      p.querySelector('.hsess').textContent = s.session + '%';
+      p.querySelector('.hsess').style.color = c;
+      p.querySelector('.hreset').textContent = s.reset + 'でリセット';
+      p.querySelector('.hweek').textContent = s.week;
+      var wm = p.querySelector('.wmeter');
+      wm.style.width = s.week + '%';
+      wm.style.background = colorFor(s.week);
+    });
+  }
+
+  // ---------- controls ----------
+  var stateSeg = document.getElementById('stateSeg');
+  stateSeg.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    state = b.dataset.state;
+    [].forEach.call(stateSeg.querySelectorAll('button'), function (x) {
+      x.setAttribute('aria-pressed', x === b);
+    });
+    if (heroSlot._g) heroSlot._g.update(SCEN[state]);
+    renderAll(true);
+  });
+
+  var appearSeg = document.getElementById('appearSeg');
+  appearSeg.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var mode = b.dataset.appear;
+    [].forEach.call(appearSeg.querySelectorAll('button'), function (x) {
+      x.setAttribute('aria-pressed', x === b);
+    });
+    document.getElementById('wall').classList.toggle('light', mode === 'light');
+    document.getElementById('heroBar').classList.toggle('light', mode === 'light');
+  });
+
+  // ---------- init ----------
+  mountHero();
+  renderAll(false);
+})();
+
+</script>
+</body>
+</html>
